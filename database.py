@@ -1,5 +1,5 @@
 'Database module'
-
+from types import *
 
 class TableDouble:
     """Authors table abstraction class.
