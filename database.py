@@ -67,19 +67,26 @@ Table is assured to contain no duplicates."""
 
     def __str__(self):
         """String representation"""
-        rows = 40
-        # following works in most linux systems:
-        # import subprocess
-        # rows = int(subprocess.check_output(['stty', 'size']).split()[0])
-        # divide into 2 columns
-        rows_1 = rows // self.ratio
-        rows_2 = rows - rows_1
-        result_string = rows * '*' + '\n'
-        for name, identifier in self.data.items():
-            name_spaces = (rows_2 - len(name)) // 2
-            id_spaces = (rows_1 - len(str(identifier))) // 2
-            # make a table string
-            result_string += ("*" + id_spaces * " " + "%d" + id_spaces * " " + "*"
-                             + (name_spaces - 1) * " " + name + name_spaces * " "
-                             + "*\n" + (rows * "*") + "\n") % identifier
-        return result_string
+        if self.data_id_name.items() == []:
+            return ""
+        else:
+            # divide into 2 columns
+            assert type(self.rows) is IntType, "rows is not an integer: %r" %self.rows
+            rows_1 = (self.rows // self.ratio)
+            rows_2 = self.rows - rows_1 - 3
+            result_string = self.rows * '*' + '\n'
+            for name, identifier in sorted(self.data_name_id.items()):
+                assert self.data_id_name[identifier] == name
+                id_len = len(str(identifier))
+                if id_len < rows_1:
+                    id_spaces = (rows_1 - id_len) // 2
+                    name_spaces = (rows_2 - len(name)) // 2 + 1
+                else:
+                    id_spaces = 0
+                    name_spaces = (self.rows - len(name) - (id_len) - 1) // 2
+
+                # make a string for each record
+                result_string += ( "*" + id_spaces * " " + "%r" + id_spaces * " " + "*"
+                                 + name_spaces * " " + name + (name_spaces - int(0.5 + len(name) % 2)) * " "
+                                 + "*\n" + (self.rows * "*") + "\n" ) % identifier
+            return result_string
