@@ -22,8 +22,6 @@ Table is assured to contain no duplicates."""
         """Add value to table. Do nothing if it exists"""
         assert type(identifier) is IntType, "id is not an integer: %r" % identifier
         assert type(name) is StringType, "name is not a string: %r" % name
-        print name
-        print identifier
         if name not in self.data_name_id:
             self.data_name_id[name] = identifier
             self.data_id_name[identifier] = name
