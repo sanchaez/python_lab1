@@ -7,14 +7,14 @@ Table is assured to contain no duplicates."""
 
     def __init__(self, init_data, default_ratio=10):
         """Init function"""
-        from collections import Counter
         # example data stored: {'Douglas Adams': 1, 'Stephen King': 2}
         # table divisor (1/ratio). Used to print values.
         self.ratio = default_ratio
-        # Counter wrapper of dict used to autoincrement values
-        self.data = Counter()
+        self.data = dict()
+        assert isinstance(init_data, object)
         for key in init_data:
-            self.data[key] += 1
+            for i in range(1, len(init_data)):
+                self.data[key] = 1
 
     def add(self, key):
         """Add value to table. Do nothing if it exists"""
