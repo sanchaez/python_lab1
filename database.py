@@ -30,6 +30,11 @@ Table is assured to contain no duplicates."""
         for key, value in self.data.items():
             if value == search_value:
                 return key
+
+    def add_list(self, name_list):
+        # to perform all the nessesary restrictions
+        for identifier, name in zip(range(len(name_list)), name_list):
+            self.add(identifier, name)
     def filter(self):
         """Add a filter & return TableDouble object"""
     def remove(self, key):
