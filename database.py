@@ -89,3 +89,9 @@ Table is assured to contain no duplicates."""
                                   + name_spaces * " " + name + (name_spaces - int(0.5 + len(name) % 2)) * " "
                                   + "*\n" + (self.rows * "*") + "\n") % identifier
             return result_string
+
+#container test
+if __name__ == '__main__':
+    test_1 = TableDouble(['John doe', 'test1'])
+    test_1.add(1000000000000000000, "lol")
+    print test_1
