@@ -2,6 +2,7 @@
 from types import *
 import sys
 
+
 class MenuEntry:
     """Menu entry storage
     name    = name of entry
@@ -21,7 +22,7 @@ class MenuEntry:
 class Menu:
     """Generic simple editable menu which stores entries in dict"""
 
-    def __init__(self, init_data, init_data_fn, init_index = None, name="Menu"):
+    def __init__(self, init_data, init_data_fn, init_index=None, name="Menu"):
         """Init method.
          init_data should contain a list of string names of options"""
         # custom index
@@ -32,7 +33,7 @@ class Menu:
         self.data = dict(zip(_index,
                              map(lambda x, y: MenuEntry(x, y), init_data, init_data_fn)))
         # add exit option
-        self.data["exit"] =  MenuEntry("Exit", sys.exit)
+        self.data["exit"] = MenuEntry("Exit", sys.exit)
         self.name = name
 
     def call_entry(self, key):
@@ -48,9 +49,12 @@ class Menu:
                + "".join(map(lambda x: str(x[0]) + ": " + str(x[1]) + "\n",
                              sorted(self.data.items())))
 
+
 if __name__ == '__main__':
     def dummy():
         print "YES!"
+
+
     test_2 = Menu(["Entry1", "Entry2"], [dummy, dummy], ["a", "b"], "Custom Menu")
     print test_2
     test_2.call_entry("a")

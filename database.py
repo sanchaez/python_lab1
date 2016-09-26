@@ -1,6 +1,7 @@
 'Database Module'
 from types import *
 
+
 class TableDouble:
     """Authors table abstraction class.
 Table is assured to contain no duplicates."""
@@ -90,7 +91,8 @@ Table is assured to contain no duplicates."""
                                   + "*\n" + (self.rows * "*") + "\n") % identifier
             return result_string
 
-#container test
+
+# container test
 if __name__ == '__main__':
     test_1 = TableDouble(['John doe', 'test1'])
     test_1.add(1000000000000000000, "lol")
