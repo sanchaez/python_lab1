@@ -1,9 +1,10 @@
-'Database module'
+'Database Module'
 from types import *
 
 class TableDouble:
     """Authors table abstraction class.
 Table is assured to contain no duplicates."""
+
     def __init__(self, init_data):
         """Init function"""
         # example data stored: {'Douglas Adams': 1, 'Stephen King': 2}
@@ -27,7 +28,7 @@ Table is assured to contain no duplicates."""
             self.data_id_name[identifier] = name
 
     def add_list(self, name_list):
-        # to perform all the nessesary restrictions
+        # to perform all the nessesary restrictions and prevent duplicates
         for identifier, name in zip(range(len(name_list)), name_list):
             self.add(identifier, name)
 
@@ -49,7 +50,7 @@ Table is assured to contain no duplicates."""
 
     def filter(self):
         """Return TableDouble object with applied filter"""
-        pass # not implemented
+        pass  # not implemented
 
     def remove(self, key):
         """Remove record by name"""
@@ -69,7 +70,7 @@ Table is assured to contain no duplicates."""
             return ""
         else:
             # divide into 2 columns
-            assert type(self.rows) is IntType, "rows is not an integer: %r" %self.rows
+            assert type(self.rows) is IntType, "rows is not an integer: %r" % self.rows
             rows_1 = (self.rows // self.ratio)
             rows_2 = self.rows - rows_1 - 3
             result_string = self.rows * '*' + '\n'
@@ -84,7 +85,7 @@ Table is assured to contain no duplicates."""
                     name_spaces = (self.rows - len(name) - (id_len) - 1) // 2
 
                 # make a string for each record
-                result_string += ( "*" + id_spaces * " " + "%r" + id_spaces * " " + "*"
-                                 + name_spaces * " " + name + (name_spaces - int(0.5 + len(name) % 2)) * " "
-                                 + "*\n" + (self.rows * "*") + "\n" ) % identifier
+                result_string += ("*" + id_spaces * " " + "%r" + id_spaces * " " + "*"
+                                  + name_spaces * " " + name + (name_spaces - int(0.5 + len(name) % 2)) * " "
+                                  + "*\n" + (self.rows * "*") + "\n") % identifier
             return result_string
