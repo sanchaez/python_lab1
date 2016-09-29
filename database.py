@@ -7,8 +7,8 @@ class TableDouble:
 Table is assured to contain no duplicates."""
 
     def __init__(self, init_data):
-        """Init function"""
-        # example data stored: {'Douglas Adams': 1, 'Stephen King': 2}
+        """Init function
+            example data stored: {'Douglas Adams': 1, 'Stephen King': 2}"""
         # ratio is a table divisor (1/ratio). Used to print values.
         self.ratio = 10
         # rows is a number of rows used for printing values
@@ -64,6 +64,9 @@ Table is assured to contain no duplicates."""
         val = self.data_id_name[key]
         assert self.data_name_id[val] == key
         del self.data_id_name[key], self.data_name_id[val]
+
+    def print_this(self):
+        print self
 
     def __str__(self):
         """String representation"""
