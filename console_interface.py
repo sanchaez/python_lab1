@@ -20,21 +20,25 @@ class MenuEntry:
 
 
 class Menu:
-    """Generic simple editable menu which stores entries in dict"""
+    """Generic simple customisable menu which stores entries in dict"""
 
-    def __init__(self, init_data, init_data_fn, init_index=None, name="Menu"):
+    def __init__(self, init_names, init_data_fn, init_index=None, name="Menu"):
         """Init method.
          init_data should contain a list of string names of options"""
         # custom index
         _index = init_index
         if _index is None:
-            _index = range(len(init_data))
+            _index = map(str, range(len(init_names)))
         # dict creation
         self.data = dict(zip(_index,
-                             map(lambda x, y: MenuEntry(x, y), init_data, init_data_fn)))
+                             map(lambda x, y: MenuEntry(x, y), init_names, init_data_fn)))
         # add exit option
         self.data["exit"] = MenuEntry("Exit", sys.exit)
         self.name = name
+
+    def add_entry(self, name, fn, index):
+        """Adding entry to menu"""
+        self.data[index] = MenuEntry(name, fn)
 
     def call_entry(self, key):
         """Calling entry fn by key"""
