@@ -1,5 +1,5 @@
-'Database Module'
 from types import *
+"""Database Module"""
 from collections import namedtuple
 
 #it is DEPRECATED and WILL BE REMOVED!
@@ -98,25 +98,42 @@ Table is assured to contain no duplicates."""
 
 class DatabaseTable(object):
     """A table container"""
-    def __init__(self, default_columns_namedtuple_class):
-        #uid table contains an unique key and its row
-        self.container_class = default_columns_namedtuple_class
-        self.uid_index = list()
+
+    def __init__(self, default_columns):
+        # uid table contains an unique key and its row
+        self._container_class = namedtuple('__fields__', default_columns)
+        self._indexed_table = list()
 
     def __getitem__(self, item):
-        return self.uid_index[item]
+        got_item = self._indexed_table[item]
+        assert isinstance(got_item, self._container_class)
+        return got_item
 
     def __setitem__(self, key, value):
-        assert isinstance(key, self.container_class)
-        self.uid_index[key] = value
+        assert isinstance(key, self._container_class)
+        self._indexed_table[key] = value
+
     def __add__(self, other):
-        assert isinstance(other, self.container_class)
-        self.uid_index.append(other)
-        #TODO: class addition
-    #TODO: addition, substraction and join
+        assert isinstance(other, self.__class__)
+        self._indexed_table.append(other._indexed_table)
+        # TODO: addition, substraction and join
+
+    def _generic_join(self, other, **kwargs):
+        """JOIN method that accepts keywords.
+        type = type of join - 'inner' 'outer' 'cross'
+        direction = direction of join 'left' 'right' 'full'
+        relations = a tuple of dicts :
+            columns_1, columns_2 - columns to join from self and other
+            relation-fn - boolean function that accepts at least 2 values
+        """
+        #TODO: implement
+        pass
+
+
 
 # container test
 if __name__ == '__main__':
     test_1 = TableDouble(['John doe', 'test1'])
     test_1.add(1000000000000000000, "lol")
     print test_1
+    pass
