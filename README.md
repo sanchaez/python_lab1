@@ -1,3 +1,2 @@
-## python_lab1
-# Lab 1: Simple Database
-This project is very minimalistic and it's meant to be as small as possible. 
+## python_labs
+This is a repository for all labs in course.
