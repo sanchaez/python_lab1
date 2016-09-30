@@ -1,8 +1,10 @@
 'Database Module'
 from types import *
+from collections import namedtuple
 
-
-class TableDouble:
+#it is DEPRECATED and WILL BE REMOVED!
+#TODO: remove this class
+class TableDouble(object):
     """Authors table abstraction class.
 Table is assured to contain no duplicates."""
 
@@ -94,6 +96,24 @@ Table is assured to contain no duplicates."""
                                   + "*\n" + (self.rows * "*") + "\n") % identifier
             return result_string
 
+class DatabaseTable(object):
+    """A table container"""
+    def __init__(self, default_columns_namedtuple_class):
+        #uid table contains an unique key and its row
+        self.container_class = default_columns_namedtuple_class
+        self.uid_index = list()
+
+    def __getitem__(self, item):
+        return self.uid_index[item]
+
+    def __setitem__(self, key, value):
+        assert isinstance(key, self.container_class)
+        self.uid_index[key] = value
+    def __add__(self, other):
+        assert isinstance(other, self.container_class)
+        self.uid_index.append(other)
+        #TODO: class addition
+    #TODO: addition, substraction and join
 
 # container test
 if __name__ == '__main__':
