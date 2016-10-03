@@ -1,20 +1,23 @@
 '''Main file'''
-from collections import Counter
+from __future__ import print_function
 from database import *
 from console_interface import *
 
 
-def dummy():
-    pass
-if __name__ == '__main__':
+def printer(obj):
+    return lambda: print(obj)
 
-    authors = TableDouble(["Douglas Adams", "Ray Bradbury"])
-    books = TableDouble(["Hitchiker's guide to the Galaxy", "451 Fahrenheit"])
+if __name__ == '__main__':
+    authors = DatabaseTable('Author YearOfBirth')
+    books = DatabaseTable('Book NumOfPages AuthorID')
+    # TODO: populate
+    # TODO: use pickle
     menu_instance = Menu(["View table Author", "View table Books", "Filter...", "Search..."],
-                         [authors.print_this, books.print_this, dummy, dummy])
-    print menu_instance
-    print menu_instance.data.keys()
+                         [printer(authors), printer(books), printer(''), printer('')])
+    print(menu_instance)
+    print(menu_instance.data.keys())
     while True:
         var = raw_input("Choose an option:")
-        print repr(var)
+        print(repr(var))
         menu_instance.call_entry(var)
+
