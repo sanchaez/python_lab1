@@ -149,26 +149,40 @@ class DatabaseTable(object):
         :kwargs:
             columns: tuple with names of columns
             rows: tuple with numbers of rows
-            filter: filter predicate"""
-        if 'columns' and 'rows' not in kwargs:
-            return self
+            filter: filter predicate
+            filter_columns: columns to affect filter"""
         if 'columns' in kwargs:
             _columns = kwargs['columns']
         else:
-            _columns = self._container_class._fields()
+            _columns = self._container_class._fields
         if 'rows' in kwargs:
             _rows = kwargs['rows']
         else:
-            _rows = len(self._indexed_table)
+            _rows = range(len(self._indexed_table))
+        if 'filter' in kwargs:
+            _filter = kwargs['filter']
+        else:
+            _filter = lambda x: True
+        if 'filter_columns' in kwargs:
+            _filter_columns = kwargs['filter_columns']
+        else:
+            _filter_columns = self._container_class._fields
         # collecting values
         gathered_table = DatabaseTable(_columns)
-        gathered_row = list()
         for index in _rows:
+            gathered_row = []
             for field in _columns:
-                gathered_row.append(self._indexed_table[index][field])
-            gathered_table += gathered_row
+                gathered_row.append(getattr(self._indexed_table[index], field))
+            # apply filter
+            filter_good = True
+            for filter_field in _filter_columns:
+                if not _filter(getattr(self._indexed_table[index], filter_field)):
+                    filter_good = False
+                    break
+            if filter_good:
+                gathered_table += gathered_row
         return gathered_table
-    #TODO: add filter
+
     @staticmethod
     def _generic_join(self, other, *args, **kwargs):
         """JOIN method that accepts keywords.
@@ -294,10 +308,10 @@ class DatabaseTable(object):
 if __name__ == '__main__':
     test_1 = DatabaseTable('a b')
     test_2 = DatabaseTable('c d')
-    for x, y in zip(range(1,5), range(2)):
+    for x, y in zip(range(1,5), range(4)):
         test_1 += (x, y)
         test_2 += (y, x)
     print DatabaseTable._generic_join(test_1, test_2, ('a', 'c', lambda x, y: x == y))
     print DatabaseTable._generic_join(test_1, test_2, ('a', 'c', lambda x, y: x == y),
                                       type='outer', direction='full', fields_1 = tuple('a'), fields_2 = tuple('c'))
-
+    print test_1.subtable(filter=lambda x: x > 2, filter_columns='a')
