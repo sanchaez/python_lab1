@@ -1,6 +1,6 @@
 from database import DatabaseTableModel
 from tableview import *
-from types import *
+from collections import namedtuple
 
 
 class TableController(object):
@@ -9,7 +9,7 @@ class TableController(object):
     __default_join_type = 'inner'
     __default_direction = 'full'
 
-    def __init__(self, table, view):
+    def __init__(self, table, view=SimpleTableView):
         assert isinstance(table, DatabaseTableModel)
         assert issubclass(view, TableView)
         self.__table = table
@@ -18,19 +18,24 @@ class TableController(object):
     def get_item(self, index, name):
         return self.__table.get_item(index, name)
 
-    def set_item(self, index, name):
-        self.__view.add_to_table(self.__table)
+    def set_item(self, index, name, value):
+        self.__table.set_item(index, name, value)
+
+    def del_row(self, index):
+        self.__table.del_row(index)
+
+    def fields(self):
+        return self.__table.fields()
 
     def find(self, values, columns):
         """Finds first matching row by :columns: and :values:"""
-        assert type(values) is TupleType or ListType
         for column in columns:
-            for value in self.__table:
-                if getattr(value, column) in values:
-                    return value
+            for row in self.__table:
+                if getattr(row, column) in values:
+                    return row
 
     def update_view(self):
-        self.__view.update()
+        self.__view.update(self)
 
     def add_row_visual(self):
         self.__view.add_to_table(self.__table)
@@ -39,7 +44,7 @@ class TableController(object):
         self.__view.edit_table(self.__table)
 
     def delete_row_visual(self):
-        self.__view.delete_row(self.__table)
+        return self.__view.delete_row(self.__table)
 
     def subtable(self, *args, **kwargs):
         """Creates a subtable controller object from controlled table.
@@ -59,7 +64,8 @@ class TableController(object):
         if 'filter' in kwargs:
             _filter = kwargs['filter']
         else:
-            _filter = lambda x: True
+            def _filter(x):
+                return True
 
         if 'filter_columns' in kwargs:
             _filter_columns = kwargs['filter_columns']
@@ -77,13 +83,13 @@ class TableController(object):
                     break
             if filter_good:
                 gathered_table += gathered_row
-        return TableController(gathered_table)
+        return TableController(gathered_table, self.__view)
 
     def join(self, other, *args, **kwargs):
-        return self._generic_join(self.__table, other, *args, **kwargs)
+        return self.__generic_join(self.__table, other, *args, **kwargs)
 
     @staticmethod
-    def _generic_join(table1, table2, *args, **kwargs):
+    def __generic_join(table1, table2, *args, **kwargs):
         """JOIN method that accepts keywords.
         other - other table class
         args = a tuple of tuples:
@@ -198,41 +204,51 @@ class TableController(object):
         return gathered_table
 
 
-class RelationalTableController(object):
-    def __init__(self, slave, master, master_view=None, slave_view=None):
+class VisualRelationalTableController(object):
+    __relation_class = namedtuple("TableRelation", "master slave")
+
+    def __init__(self, master_controller, slave_controller, foreign_key=None):
+        """Init function.
+        :type foreign_key: Tuple of 2 values:
+            master_column, slave_column - values in slave_column bound to values in master_column
+        :type master_controller: TableController
+        :type slave_controller: TableController
+
+            """
         # check values
-        if isinstance(slave, TableController):
-            self.__controller_slave = slave
-        elif isinstance(slave, DatabaseTableModel):
-            self.__controller_slave = TableController(slave)
-        else:
-            raise ValueError("Values must be models or controllers: {0}".format(slave))
-        if isinstance(master, TableController):
-            self.__controller_master = master
-        elif isinstance(master, DatabaseTableModel):
-            self.__controller_master = TableController(master)
-        else:
-            raise ValueError("Values must be models or controllers: {0}".format(master))
-        self.__view_master = master_view
-        self.__view_slave = slave_view
-
-    # getters
-    def get_item_master(self, index, name):
-        return self.__controller_master.get_item(index, name)
-
-    def get_item_slave(self, index, name):
-        return self.__controller_slave.get_item(index, name)
+        assert isinstance(slave_controller, TableController)
+        self.__controller_slave = slave_controller
+        assert isinstance(master_controller, TableController)
+        self.__controller_master = master_controller
+        self.__relation = self.__relation_class._make(foreign_key)
 
     # setters
-    def set_item_master(self, index, name):
-        self.__controller_master.set_item(index, name)
+    def add_row_master(self):
+        self.__controller_master.add_row_visual()
 
-    def set_item_slave(self, index, name):
-        self.__controller_slave.set_item(index, name)
+    def add_row_slave(self):
+        # set_row = \
+        self.__controller_slave.add_row_visual()
+        # found_in_master = self.__controller_master.find(getattr(set_row, getattr(self.__relation, "slave")),
+        #                                                getattr(self.__relation, "master"))
+        # if found_in_master:
+        #    add to table master
 
-    # visual
+    # deletion (visual)
+    def delete_slave(self):
+        self.__controller_slave.delete_row_visual()
+
+    def delete_master(self):
+        deleted_line = self.__controller_master.delete_row_visual()
+        # delete matching foreign keys if the row is deleted
+        if deleted_line:
+            key_to_delete = getattr(deleted_line, self.__relation[0])
+            self.__controller_slave = \
+                self.__controller_slave.subtable(filter=(lambda x: False if x == key_to_delete else True),
+                                                 filter_columns=self.__relation[1])
+
     def update_view_master(self):
-        self.__view_master.update()
+        self.__controller_master.update_view()
 
     def update_view_slave(self):
-        self.__view_slave.update()
+        self.__controller_slave.update_view()

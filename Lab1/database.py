@@ -8,8 +8,12 @@ from collections import namedtuple
 class DatabaseTableModel(object):
     """A table container"""
     # class defaults
-
     __default_output_type = 'grid'
+
+    # join types
+    _default_join_type = 'inner'
+    _default_direction = 'left'
+
     # counter
     __instance_count = 0
 
