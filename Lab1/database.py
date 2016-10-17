@@ -1,8 +1,8 @@
 """Database Module"""
-
+from collections import OrderedDict
 from types import *
+
 from tabulate import tabulate
-from collections import namedtuple
 
 
 class DatabaseTableModel(object):
@@ -17,27 +17,28 @@ class DatabaseTableModel(object):
     # counter
     __instance_count = 0
 
-    def __init__(self, default_columns):
+    def __init__(self, default_columns, name=str(__instance_count)):
         """Init function"""
         self.__instance_count += 1
         # id table contains an unique key and its row
-        self._container_class = namedtuple('__fields' + str(self.__instance_count), default_columns)
+        self.name = name
+        self.__fields = default_columns
         self.__indexed_table = list()
 
     def __getitem__(self, item):
         assert type(self.__indexed_table) is ListType, "Invalid table : {0}".format(self.__indexed_table)
         got_item = self.__indexed_table[item]
-        assert isinstance(got_item, self._container_class), "Invalid table on record : {0}".format(got_item)
+        assert isinstance(got_item, OrderedDict), "Invalid table on record : {0}".format(got_item)
         return got_item
 
     def __setitem__(self, key, value):
         assert type(self.__indexed_table) is ListType, "Invalid table : {0}".format(self.__indexed_table)
         assert type(value) is ListType or TupleType
-        self.__indexed_table[key] = self._container_class._make(value)
+        self.__indexed_table[key] = OrderedDict(zip(self.__fields, value))
 
     def __add__(self, other):
         if type(other) in (ListType, TupleType):
-            self.__indexed_table.append(self._container_class._make(other))
+            self.__indexed_table.append(OrderedDict(zip(self.__fields, other)))
         else:
             # no variants left
             assert isinstance(other, self.__class__), "Type of operand is invalid: {0}".format(other)
@@ -74,20 +75,19 @@ class DatabaseTableModel(object):
         return self[index]
 
     def fields(self):
-        return self._container_class._fields
+        return self.__fields
 
     # deletion
     def del_row(self, index):
         self[index] = None
 
     def __delitem__(self, key):
-        self[key] = None
+        del self.__indexed_table[key]
 
     # setters
     def set_item(self, index, name, value):
-        self[index] = self[index]._replace(**{name: value})
-
-
+        self[index][name] = value
+        print self[index][name], value, self[index]
 # container test
 if __name__ == '__main__':
     test_1 = DatabaseTableModel('a b')

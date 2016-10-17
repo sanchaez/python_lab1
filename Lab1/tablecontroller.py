@@ -1,6 +1,9 @@
+from collections import namedtuple
+
+import dill as pickle  # dill supports 'pickling nested classes'
+
 from database import DatabaseTableModel
 from tableview import *
-from collections import namedtuple
 
 
 class TableController(object):
@@ -9,17 +12,23 @@ class TableController(object):
     __default_join_type = 'inner'
     __default_direction = 'full'
 
-    def __init__(self, table, view=SimpleTableView):
-        assert isinstance(table, DatabaseTableModel)
-        assert issubclass(view, TableView)
-        self.__table = table
-        self.__view = view
+    def __init__(self, table_model, view_class=SimpleTableView):
+        assert issubclass(table_model.__class__, DatabaseTableModel)
+        assert issubclass(view_class, TableView)
+        self.__table = table_model
+        self.__view = view_class
+
+    def __getitem__(self, item):
+        return self.__table.get_row(item)
 
     def get_item(self, index, name):
         return self.__table.get_item(index, name)
 
     def set_item(self, index, name, value):
         self.__table.set_item(index, name, value)
+
+    def add_row(self, row):
+        self.__table += row
 
     def del_row(self, index):
         self.__table.del_row(index)
@@ -31,7 +40,7 @@ class TableController(object):
         """Finds first matching row by :columns: and :values:"""
         for column in columns:
             for row in self.__table:
-                if getattr(row, column) in values:
+                if row[column] in values:
                     return row
 
     def update_view(self):
@@ -45,6 +54,17 @@ class TableController(object):
 
     def delete_row_visual(self):
         return self.__view.delete_row(self.__table)
+
+    def search(self):
+        self.__view.search(self)
+
+    def dump(self):
+        with open(self.__table.name + ".b", "wb") as f:
+            pickle.dump(self.__table, f)
+
+    def load(self):
+        with open(self.__table.name + ".b") as f:
+            self.__table = pickle.load(f)
 
     def subtable(self, *args, **kwargs):
         """Creates a subtable controller object from controlled table.
@@ -66,19 +86,22 @@ class TableController(object):
         else:
             def _filter(x):
                 return True
-
         if 'filter_columns' in kwargs:
-            _filter_columns = kwargs['filter_columns']
+            if isinstance(kwargs['filter_columns'], list) \
+                    or isinstance(kwargs['filter_columns'], tuple):
+                _filter_columns = kwargs['filter_columns']
+            else:
+                _filter_columns = [kwargs['filter_columns']]
         else:
             _filter_columns = self.__table.fields()
         # collecting values
         gathered_table = DatabaseTableModel(_columns)
         for index in _rows:
-            gathered_row = map(lambda x: getattr(self.__table[index], x), _columns)
+            gathered_row = map(lambda x: self.__table[index][x], _columns)
             # apply filter
             filter_good = True
             for filter_field in _filter_columns:
-                if not _filter(getattr(self.__table[index], filter_field)):
+                if not _filter(self.__table[index][filter_field]):
                     filter_good = False
                     break
             if filter_good:
@@ -102,7 +125,7 @@ class TableController(object):
         """
 
         def get_fields(table, fields, index):
-            return map(lambda field: getattr(table[index], field), fields)
+            return map(lambda field: table[index][field], fields)
 
         # get parameters
         if 'type' in kwargs:
@@ -117,11 +140,19 @@ class TableController(object):
         else:
             _direction = table1._default_direction
         if 'fields_1' in kwargs:
-            _fields_1 = kwargs['fields_1']
+            if isinstance(kwargs['fields_1'], list) \
+                    or isinstance(kwargs['fields_1'], tuple):
+                _fields_1 = kwargs['fields_1']
+            else:
+                _fields_1 = tuple(kwargs['fields_1'])
         else:
             _fields_1 = table1.fields()
         if 'fields_2' in kwargs:
-            _fields_2 = kwargs['fields_2']
+            if isinstance(kwargs['fields_2'], list) \
+                    or isinstance(kwargs['fields_2'], tuple):
+                _fields_1 = kwargs['fields_2']
+            else:
+                _fields_1 = tuple(kwargs['fields_2'])
         else:
             _fields_2 = table2.fields()
         # make temporary index
@@ -132,11 +163,11 @@ class TableController(object):
         temporary_index_copy = None
         for relation in args:
             # find matching records
-            assert isinstance(table1, DatabaseTableModel) and isinstance(table2, DatabaseTableModel)
+            assert issubclass(table1, DatabaseTableModel) and issubclass(table2, DatabaseTableModel)
             for index_row_1, row_1 in enumerate(table1):
                 for index_row_2, row_2 in enumerate(table2):
-                    if relation[2](getattr(row_1, relation[0]),
-                                   getattr(row_2, relation[1])):
+                    if relation[2](row_1[relation[0]],
+                                   row_2[relation[1]]):
                         if row_1 in temporary_index_left_center:
                             temporary_index_left_center[index_row_1].append(index_row_2)
                         else:
@@ -207,7 +238,7 @@ class TableController(object):
 class VisualRelationalTableController(object):
     __relation_class = namedtuple("TableRelation", "master slave")
 
-    def __init__(self, master_controller, slave_controller, foreign_key=None):
+    def __init__(self, master_controller, slave_controller, foreign_key=()):
         """Init function.
         :type foreign_key: Tuple of 2 values:
             master_column, slave_column - values in slave_column bound to values in master_column
@@ -216,9 +247,9 @@ class VisualRelationalTableController(object):
 
             """
         # check values
-        assert isinstance(slave_controller, TableController)
+        assert issubclass(slave_controller.__class__, TableController)
         self.__controller_slave = slave_controller
-        assert isinstance(master_controller, TableController)
+        assert issubclass(master_controller.__class__, TableController)
         self.__controller_master = master_controller
         self.__relation = self.__relation_class._make(foreign_key)
 
@@ -229,8 +260,8 @@ class VisualRelationalTableController(object):
     def add_row_slave(self):
         # set_row = \
         self.__controller_slave.add_row_visual()
-        # found_in_master = self.__controller_master.find(getattr(set_row, getattr(self.__relation, "slave")),
-        #                                                getattr(self.__relation, "master"))
+        # found_in_master = self.__controller_master.find(set_row[self.__relation["slave"]],
+        #                                                self.__relation["master"])
         # if found_in_master:
         #    add to table master
 
@@ -242,13 +273,55 @@ class VisualRelationalTableController(object):
         deleted_line = self.__controller_master.delete_row_visual()
         # delete matching foreign keys if the row is deleted
         if deleted_line:
-            key_to_delete = getattr(deleted_line, self.__relation[0])
+            key_to_delete = deleted_line[self.__relation[0]]
             self.__controller_slave = \
                 self.__controller_slave.subtable(filter=(lambda x: False if x == key_to_delete else True),
                                                  filter_columns=self.__relation[1])
 
+    def search_master(self):
+        return self.__controller_master.search()
+
+    def search_slave(self):
+        return self.__controller_slave.search()
+
+    def edit_master(self):
+        return self.__controller_master.edit_row_visual()
+
+    def edit_slave(self):
+        return self.__controller_slave.edit_row_visual()
+
     def update_view_master(self):
-        self.__controller_master.update_view()
+        return self.__controller_master.update_view()
 
     def update_view_slave(self):
-        self.__controller_slave.update_view()
+        return self.__controller_slave.update_view()
+
+    def dump(self):
+        self.__controller_master.dump()
+        self.__controller_slave.dump()
+        print "Tables dumped!\n"
+
+    def load(self):
+        self.__controller_master.load()
+        self.__controller_slave.load()
+        print "Tables loaded!\n"
+
+    def print_task_result(self):
+        '''
+        task: authors with more than 100 pages in a book
+        authors must be master, books - slave
+        ( this is ugly, sorry :( )'''
+
+        def filter_hundred(x):
+            try:
+                int_x = int(x)
+            except:
+                return False
+            if int_x > 100:
+                return True
+            return False
+
+        found_authors = self.__controller_slave.subtable(("Author"), filter=filter_hundred,
+                                                         filter_columns="NumOfPages")
+        print tabulate(found_authors, headers='keys', tablefmt="grid")
+        raw_input("Press Enter to continue...")

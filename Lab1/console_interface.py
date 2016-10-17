@@ -1,6 +1,5 @@
 'Console Interface Module'
 from types import *
-from tablecontroller import VisualRelationalTableController
 
 
 class MenuEntry:
@@ -71,11 +70,12 @@ class Menu(object):
 
     def loop(self):
         while not self.__exited:
+            print self
             var = raw_input("Choose an option:")
             self.__call_entry(var)
 
     @staticmethod
-    def __nested_menu_loop(index, fn_iterable, **kwargs):
+    def nested_menu_loop(index, fn_iterable, **kwargs):
         m = Menu(index, fn_iterable, **kwargs)
         return lambda: m.loop()
 
@@ -92,30 +92,3 @@ class Menu(object):
         return "- " + self.name + " -\n" \
                + "".join(map(lambda x: str(x[0]) + ": " + str(x[1]) + "\n",
                              sorted(self.data.items())))
-
-class MainMenu(Menu):
-    # default parameters
-    def __init__(self, relational_table_controller):
-        assert isinstance(relational_table_controller, VisualRelationalTableController), \
-            "MainMenu should use RelationalController!: {0}".format(relational_table_controller)
-        self.__controller = relational_table_controller
-        self.view_master = self.__controller.update_view_master
-        _names_array = ["View table Author",
-                         "View table Books",
-                         "Add...",
-                         "Edit..."
-                         "Delete..."
-                         "Search...",
-                         "Get Authors with books of >100 pages",
-                         "Save/Load"]
-        _fn_array = [self.__controller.update_view_master, self.__controller.update_view_slave,
-                      self.__nested_menu_loop(["Authors", "Books"],
-                                              [self.__controller.add_row_master(), self.__controller.add_row_slave()],
-                                              name='Choose table'),
-                      self.__nested_menu_loop(["Authors", "Books"],
-                                       [visual_search(authors), visual_search(books)],
-                                       name='Choose table'),
-                      self.__nested_menu_loop(["Save pickle", "Load pickle"],
-                                       [printer(''), printer('')])]
-        super(MainMenu, self).__init__(_names_array, _fn_array,
-                                       name="Simple database", return_name="Exit", return_index="x")
