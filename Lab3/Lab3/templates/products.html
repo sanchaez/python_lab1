@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+	<head>
+		<title>lab 2</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<link rel="stylesheet" href="/lab2/static/theme.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+		<script src="/lab2/static/scripts.js"></script>
+		<link type="text/css" rel="stylesheet" href="/lab2/static/styles.css" />
+	</head>
+	<body>
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="/">Lab 2 eShop</a>
+				</div>
+				<div class="collapse navbar-collapse">
+					<ul class="nav navbar-nav">
+						{% for punct in navbar %}
+							<li><a href="{{punct.link}}">{{punct.title}}</a></li>
+						{% endfor %}
+					</ul>
+				</div><!--/ nav -->
+			</div>
+		</div>
+		<div style="margin-top: 100px" class="container">
+			<div class="row">
+				<div class="col-md-12">
+					<table class="table table-striped">
+						<thead>
+							<tr>
+								{% for tHead in table.head %}
+									<th>{{tHead}}</th>
+								{% endfor %}
+							</tr>
+						</thead>
+						<tbody>
+							{% for product in table.products %}
+								<tr class="{{product.id}}">
+									{% for collname in product.data %}
+										<td><span class="{{collname.col}}">{{collname.val}}</span></td>
+									{% endfor %}
+									<td>
+										<a href="?action=update&id={{product.id}}" id="update-{{product.id}}" class="change product-btn-link">change</a>
+										<a href="?action=delete&id={{product.id}}" id="delete-{{product.id}}" class="delete product-btn-link">delete</a>
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div><!-- / table -->
+			<div class="row">
+				<div class="col-md-12">
+					<div id="accordion">
+						{% for form in forms %}
+						<h4 class="accordion-toggle">{{form.action}}</h4>
+						<div class="accordion-content">
+							<form id="{{form.name}}" role="form">
+								{% for input in form.inputs %}
+									<input type="text" name="{{input.name}}" class="{{input.name}} form-control input-md" placeholder="{{input.placeholder}}">
+								{% endfor %}
+								<button type="button" class="{{form.button}} btn btn-primary btn-lg btn-block">{{form.button}}</button>
+							</form>
+						</div>
+						{% endfor %}
+					</div>
+				</div>
+			</div><!-- / form -->
+		</div><!-- / container -->
+	</body>
+</html>
