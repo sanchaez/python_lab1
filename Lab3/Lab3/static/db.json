@@ -1,0 +1,24 @@
+{
+	"products": [
+		{"product": "product1", "cost": "1000", "department": "1"},
+		{"product": "product2", "cost": "2500", "department": "2"},
+		{"product": "product3", "cost": "1500", "department": "1"},
+		{"product": "product4", "cost": "5000", "department": "3"}
+	],
+	"orders": [
+		{"product": "1", "count": "2", "orderer": "1", "terms": "10.12.2016"},
+		{"product": "2", "count": "1", "orderer": "3", "terms": "11.10.2016"},
+		{"product": "3", "count": "10", "orderer": "2", "terms": "10.09.2016"},
+		{"product": "4", "count": "3", "orderer": "1", "terms": "25.11.2016"}
+	],
+	"orderers": [
+		{"name": "Name1", "surname": "Surname1"},
+		{"name": "Name2", "surname": "Surname2"},
+		{"name": "Name3", "surname": "Surname3"}
+	],
+	"departments": [
+		{"name": "department1"},
+		{"name": "department2"},
+		{"name": "department3"}
+	]
+}
