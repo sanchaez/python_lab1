@@ -1,6 +1,0 @@
-language: python
-python: "2.7"
-install: "pip install tabulate dill"
-before_script: cd Lab1 # cd Labx for other labs
-# command to run tests
-script: nosetests
